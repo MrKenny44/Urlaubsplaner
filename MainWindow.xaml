@@ -15,8 +15,8 @@
 
         <Menu DockPanel.Dock="Top" Margin="0,0,0,447">
             <MenuItem Header="_Option">
-                <MenuItem Command="_Speicherort" />
-                <MenuItem Command="_Stunden Einstellung" />
+                <MenuItem Header = "_Speicherort"/>
+                <MenuItem Header = "_Stunden Einstellung" />
             </MenuItem>
         </Menu>
         

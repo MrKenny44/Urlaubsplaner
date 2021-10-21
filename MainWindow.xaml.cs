@@ -50,7 +50,7 @@ namespace Urlaubsplaner
                 tStartDatum = DPStartDatum.SelectedDate.Value;
                 tEndDatum = DPEndDatum.SelectedDate.Value;
             }
-            catch (Exception)
+            catch (Exception e)
             {
                 MessageBox.Show("Bitte ein gültiges Datum angeben");
                 throw;
@@ -90,7 +90,7 @@ namespace Urlaubsplaner
                     }
                     else
                     {
-                        stunden += 8;
+                        stunden += 5;
                     }
                 }
             }
