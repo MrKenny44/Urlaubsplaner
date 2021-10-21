@@ -56,7 +56,7 @@ namespace Urlaubsplaner
                 throw;
             }
 
-            int tStunden = CalcStunden(tStartDatum,tEndDatum);
+            float tStunden = CalcStunden(tStartDatum,tEndDatum);
             bool tGenommen = false;
 
             Urlaub urlaub = new Urlaub()
@@ -69,18 +69,44 @@ namespace Urlaubsplaner
             return urlaub;
         }
 
-        private int CalcStunden(DateTime Start, DateTime Ende)
+        private float CalcStunden(DateTime Start, DateTime Ende)
         {
-            int stunden = 0;
+            float stunden = 0;
             int tage;
 
             tage = (Ende - Start).Days +1;
 
             for (int i = 0; i < tage; i++)
             {
-                stunden += 8;
+                if (IsFeiertagOrWeekend(Start.AddDays(i)))
+                {
+                    stunden += 0;
+                }
+                else
+                {
+                    if (Start.AddDays(i).DayOfWeek != DayOfWeek.Friday)
+                    {
+                        stunden += 8.75f;
+                    }
+                    else
+                    {
+                        stunden += 8;
+                    }
+                }
             }
             return stunden;
+        }
+
+        private bool IsFeiertagOrWeekend(DateTime tDay)
+        {
+            if (tDay.DayOfWeek == DayOfWeek.Saturday || tDay.DayOfWeek == DayOfWeek.Sunday)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
         }
     }
 }
