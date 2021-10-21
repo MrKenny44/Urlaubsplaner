@@ -1,0 +1,46 @@
+﻿<Window x:Class="Urlaubsplaner.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Urlaubsplaner"
+        mc:Ignorable="d"
+        Title="Urlaubsplaner" Height="513" Width="800">
+
+
+    <Grid Margin="0,10,0,0">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition/>
+        </Grid.ColumnDefinitions>
+
+        <Menu DockPanel.Dock="Top" Margin="0,0,0,447">
+            <MenuItem Header="_Option">
+                <MenuItem Command="_Speicherort" />
+                <MenuItem Command="_Stunden Einstellung" />
+            </MenuItem>
+        </Menu>
+        
+        <Label x:Name="lblStartdatum" Content="Startdatum:" HorizontalAlignment="Left" Margin="11,27,0,0" VerticalAlignment="Top" FontWeight="Bold" Height="26" Width="85"/>
+        <DatePicker x:Name="DPStartDatum" HorizontalAlignment="Left" Margin="11,58,0,0" VerticalAlignment="Top" Text="Start Datum" RenderTransformOrigin="0.5,0.5" Height="24" Width="134"/>
+        <Label x:Name="lblEnddatum" Content="Enddatum:" HorizontalAlignment="Left" Margin="11,79,0,0" VerticalAlignment="Top" FontWeight="Bold" Height="26" Width="78"/>
+        <DatePicker x:Name="DPEndDatum" HorizontalAlignment="Left" Margin="11,108,0,0" VerticalAlignment="Top" Text="" RenderTransformOrigin="0.5,0.5" Height="24" Width="134"/>
+
+
+        <Button x:Name="BtnUrlaubEintragen" Content="Urlaub eintragen" HorizontalAlignment="Left" Margin="10,178,0,0" VerticalAlignment="Top" Height="32" Width="182"
+                Click="UrlaubEintagen"/>
+        <Button Content="Speichern" HorizontalAlignment="Left" Margin="10,228,0,0" VerticalAlignment="Top" Height="32" Width="182"/>
+
+
+        <Label x:Name="lblUrlaubsstunden" Content="Urlaubsstunden:" HorizontalAlignment="Left" Margin="488,54,0,0" VerticalAlignment="Top" FontWeight="Bold" Height="26" Width="120"/>
+        <Label x:Name="lblReststundenDesVorjahres" Content="Restsrunden des Vorjahres:" HorizontalAlignment="Left" Margin="430,31,0,0" VerticalAlignment="Top" FontWeight="Bold" Height="26" Width="163"/>
+        <TextBox x:Name="txtUrlaubsstunden" HorizontalAlignment="Left" Margin="606,39,0,0" Text="" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" Height="18"/>
+        <TextBox x:Name="txtReststundenDesVorjahres" HorizontalAlignment="Left" Margin="606,63,0,0" Text="" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" Height="18"/>
+
+        <Label x:Name="lblGeplanteReststunden" Content="geplante Reststunden:" HorizontalAlignment="Left" Margin="456,96,0,0" VerticalAlignment="Top" FontWeight="Bold" Width="137" Height="26"/>
+        <Label x:Name="lblTatschaechlicheReststunden" Content="tatsächliche Reststunden:" HorizontalAlignment="Left" Margin="441,122,0,0" VerticalAlignment="Top" FontWeight="Bold" Width="152" Height="26"/>
+        <TextBox x:Name="txtGeplanteReststunden" HorizontalAlignment="Left" Margin="606,106,0,0" Text="" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" Height="18"/>
+        <TextBox x:Name="txtReststundenDesVorjahres_Copy" HorizontalAlignment="Left" Margin="606,130,0,0" Text="" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" Height="18"/>
+        <DataGrid x:Name="DGUrlaub" Margin="207,161,74,10"/>
+
+    </Grid>
+</Window>
