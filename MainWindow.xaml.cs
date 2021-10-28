@@ -25,6 +25,8 @@ namespace Urlaubsplaner
         public MainWindow()
         {
             InitializeComponent();
+            DPEndDatum.SelectedDate = DateTime.Now;
+            DPStartDatum.SelectedDate = DateTime.Now;
             //sets the Datagrid Item Source
             DGUrlaub.ItemsSource = vacationList;
 
@@ -37,6 +39,14 @@ namespace Urlaubsplaner
             public DateTime EndDate { get; set; }
             public float Hours { get; set; }
             public bool Taken { get; set; }
+        }
+
+        public class VacationDay
+        {
+            public DateTime Tag { get; set; }
+            public float Stunden { get; set; }
+            public DateTime Startzeitpunkt { get; set; }
+            public DateTime Endzeitpunkt { get; set; }
         }
 
         private void UrlaubEintagen(object sender, RoutedEventArgs e)
@@ -53,7 +63,13 @@ namespace Urlaubsplaner
 
         private Vacation InstantiateHollyday()
         {
+<<<<<<< Updated upstream
             DateTime tStartDate, tEndDate;
+=======
+            DateTime startDate, endDate;
+            bool? changeHours = cbStundenbearbeiten.IsChecked;
+
+>>>>>>> Stashed changes
             try
             {
                 tStartDate = DPStartDatum.SelectedDate.Value;
@@ -65,6 +81,7 @@ namespace Urlaubsplaner
                 return null;
             }
 
+<<<<<<< Updated upstream
             float tHours = CalcStunden(tStartDate, tEndDate);
             bool tTaken = false;
 
@@ -74,14 +91,28 @@ namespace Urlaubsplaner
                 EndDate = tEndDate,
                 Hours = tHours,
                 Taken = tTaken
+=======
+            Vacation urlaub = new Vacation()
+            {
+                Startdatum = startDate,
+                Enddatum = endDate,
+                Stunden = CalcStunden(CreateVacationDaysList(startDate, endDate),changeHours),
+                Genommen = false
+>>>>>>> Stashed changes
             };
             return urlaub;
         }
 
-        private float CalcStunden(DateTime Start, DateTime End)
+        private List<VacationDay> CreateVacationDaysList(DateTime Start, DateTime End)
         {
             float lHours = 0;
+<<<<<<< Updated upstream
+=======
+            float lHalfHollidayHours, lHalfHollidayHoursFriday, lPauseHours;
+>>>>>>> Stashed changes
             int lDays;
+            DateTime EndTime, StartTime;
+            List<VacationDay> vacationDays = new List<VacationDay>();
 
             //calculate the days from end to start
             lDays = (End - Start).Days + 1;
@@ -89,12 +120,24 @@ namespace Urlaubsplaner
             //loops through each day between Start and End and summed up the hours.
             for (int i = 0; i < lDays; i++)
             {
+<<<<<<< Updated upstream
                 if (IsHolidayOrWeekend(Start.AddDays(i)))
+=======
+                lHalfHollidayHoursFriday = 0;
+                lHalfHollidayHours = 0;
+                EndTime = Start.AddDays(i);
+                StartTime = Start.AddDays(i).AddHours(7);
+                lPauseHours = 0;
+
+                if (IsHolidayOrWeekend(Start.AddDays(i),hollidays))
+>>>>>>> Stashed changes
                 {
-                    lHours += 0;
+                    lHours = 0;
+                    StartTime = StartTime.AddHours(-7);
                 }
                 else
                 {
+<<<<<<< Updated upstream
                     if (Start.AddDays(i).DayOfWeek != DayOfWeek.Friday)
                     {
                         lHours += 8.75f;
@@ -102,10 +145,61 @@ namespace Urlaubsplaner
                     else
                     {
                         lHours += 5;
+=======
+                    if (IsHalfHolliday(Start.AddDays(i)))
+                    {
+                        lHalfHollidayHoursFriday = 1;
+                        lHalfHollidayHours = 4.75f;
+                        lPauseHours = 0.75f;
+                    }
+                    if (Start.AddDays(i).DayOfWeek != DayOfWeek.Friday)
+                    {
+                        lHours += 8.75f - lHalfHollidayHours;
+                        EndTime = EndTime.AddHours(16.75 - lHalfHollidayHours -lPauseHours);
+                    }
+                    else
+                    {
+                        lHours += 5 - lHalfHollidayHoursFriday;
+                        EndTime = EndTime.AddHours(12.25 - lHalfHollidayHoursFriday);
+>>>>>>> Stashed changes
                     }
                 }
+                VacationDay vacationDay = new VacationDay()
+                {
+                    Tag = Start.AddDays(i),
+                    Stunden = lHours,
+                    Startzeitpunkt = StartTime,
+                    Endzeitpunkt = EndTime
+                };
+                vacationDays.Add(vacationDay);
+                lHours = 0;
             }
-            return lHours;
+            return vacationDays;
+        }
+
+        private float CalcStunden(List<VacationDay> vacationDays, bool? changeHours)
+        {
+            float houres = 0;
+            if (changeHours == true)
+            {
+                ChangeHours(vacationDays);
+            }
+            else
+            {
+                foreach (VacationDay day in vacationDays)
+                {
+                    houres += day.Stunden;
+                }
+            }
+            return houres;
+        }
+
+        private float ChangeHours(List<VacationDay> vacationDays)
+        {
+            Window1 urlaubBearbeiten = new Window1();
+            urlaubBearbeiten.DGUrlaubstage.ItemsSource = vacationDays;
+            urlaubBearbeiten.Show();
+            return 0;
         }
 
         private bool IsHolidayOrWeekend(DateTime tDay)
@@ -123,6 +217,38 @@ namespace Urlaubsplaner
 
         private bool IsHollyday(DateTime lDate)
         {
+<<<<<<< Updated upstream
+=======
+            if (pHollidays == null)
+            {
+                return false;
+            }
+            DateTime date;
+            foreach (var child in pHollidays.Children())
+            {
+                foreach (var innerCild in child.Children())
+                {
+                    date = Convert.ToDateTime(innerCild["datum"]);
+
+                    if (date.ToShortDateString() == pDate.ToShortDateString())
+                    {
+                        return true;
+                    }
+                }
+            }return false;
+        }
+
+        private bool IsHalfHolliday(DateTime pDate)
+        {
+            //create "half" hollidays
+            DateTime halfday1 = new DateTime(pDate.Year, 12, 24);
+            DateTime halfday2 = new DateTime(pDate.Year, 12, 31);
+            
+            if (pDate.DayOfYear == halfday1.DayOfYear || pDate.DayOfYear == halfday2.DayOfYear )
+            {
+                return true;
+            }
+>>>>>>> Stashed changes
             return false;
         }
 

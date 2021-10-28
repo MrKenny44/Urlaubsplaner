@@ -24,6 +24,7 @@
         <DatePicker x:Name="DPStartDatum" HorizontalAlignment="Left" Margin="11,58,0,0" VerticalAlignment="Top" Text="Start Datum" RenderTransformOrigin="0.5,0.5" Height="24" Width="134"/>
         <Label x:Name="lblEnddatum" Content="Enddatum:" HorizontalAlignment="Left" Margin="11,79,0,0" VerticalAlignment="Top" FontWeight="Bold" Height="26" Width="78"/>
         <DatePicker x:Name="DPEndDatum" HorizontalAlignment="Left" Margin="11,108,0,0" VerticalAlignment="Top" Text="" RenderTransformOrigin="0.5,0.5" Height="24" Width="134"/>
+        <CheckBox x:Name="cbStundenbearbeiten" Content="Stunden bearbeiten" HorizontalAlignment="Left" Margin="10,139,0,0" VerticalAlignment="Top"/>
 
 
         <Button x:Name="BtnUrlaubEintragen" Content="Urlaub eintragen" HorizontalAlignment="Left" Margin="10,178,0,0" VerticalAlignment="Top" Height="32" Width="182"

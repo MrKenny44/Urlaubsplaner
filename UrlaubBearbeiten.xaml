@@ -1,0 +1,19 @@
+﻿<Window x:Name="WUrlaubBearbeiten" x:Class="Urlaubsplaner.Window1"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Urlaubsplaner"
+        mc:Ignorable="d"
+        Title="Urlaub Bearbeiten" Height="464" Width="817">
+    <DataGrid 
+        x:Name="DGUrlaubstage" 
+        Margin="20,30,0,0" 
+        Height="384" 
+        VerticalAlignment="Top" 
+        HorizontalAlignment="Left" 
+        Width="760" 
+        AutoGeneratingColumn="OnAutoGeneratingColumn"
+        CellEditEnding="OnCellChange"
+        BeginningEdit="OnCellChangeBegin"/>
+</Window>
