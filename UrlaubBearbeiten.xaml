@@ -13,7 +13,9 @@
         VerticalAlignment="Top" 
         HorizontalAlignment="Left" 
         Width="760" 
-        AutoGeneratingColumn="OnAutoGeneratingColumn"
-        CellEditEnding="OnCellChange"
-        BeginningEdit="OnCellChangeBegin"/>
+        AutoGeneratingColumn="OnAutoGeneratingColumn" 
+        CanUserAddRows="False"
+        CanUserDeleteRows="False"
+        SelectedCellsChanged="DGUrlaubstage_SelectedCellsChanged"
+        CellEditEnding="DGUrlaubstage_CellEditEnding"/>
 </Window>
