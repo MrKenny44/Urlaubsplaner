@@ -5,7 +5,7 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <UseWPF>true</UseWPF>
     <Description>Dieses Programm dient dazu den eigenen Urlaub im Blick zu behalten. Bei Wünschen oder Bugs bei Paul Kenning melden.</Description>
-    <PackageIcon>UrlaubsplanerIcon.png</PackageIcon>
+    <PackageIcon>UrlaubsplanerIcon.ico</PackageIcon>
   </PropertyGroup>
 
   <ItemGroup>
@@ -24,7 +24,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Resource Include="UrlaubsplanerIcon.png" />
+    <Resource Include="bin\Release\netcoreapp3.1\Ressources\UrlaubsplanerIcon.ico" />
   </ItemGroup>
 
 </Project>
