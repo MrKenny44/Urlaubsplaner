@@ -5,11 +5,38 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <UseWPF>true</UseWPF>
     <Description>Dieses Programm dient dazu den eigenen Urlaub im Blick zu behalten. Bei Wünschen oder Bugs bei Paul Kenning melden.</Description>
-    <PackageIcon>UrlaubsplanerIcon.ico</PackageIcon>
+    <PackageIcon>UrlaubsplanerIcon.png</PackageIcon>
   </PropertyGroup>
 
   <ItemGroup>
     <None Remove="UrlaubsplanerIcon.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <COMReference Include="Microsoft.Office.Core.dll">
+      <Guid>2df8d04c-5bfa-101b-bde5-00aa0044de52</Guid>
+      <VersionMajor>2</VersionMajor>
+      <VersionMinor>7</VersionMinor>
+      <WrapperTool>tlbimp</WrapperTool>
+      <Lcid>0</Lcid>
+      <Isolated>false</Isolated>
+    </COMReference>
+    <COMReference Include="Microsoft.Office.Outlook.dll">
+      <Guid>00062fff-0000-0000-c000-000000000046</Guid>
+      <VersionMajor>9</VersionMajor>
+      <VersionMinor>6</VersionMinor>
+      <WrapperTool>tlbimp</WrapperTool>
+      <Lcid>0</Lcid>
+      <Isolated>false</Isolated>
+    </COMReference>
+    <COMReference Include="stdole.dll">
+      <Guid>00020430-0000-0000-c000-000000000046</Guid>
+      <VersionMajor>1</VersionMajor>
+      <VersionMinor>0</VersionMinor>
+      <WrapperTool>tlbimp</WrapperTool>
+      <Lcid>0</Lcid>
+      <Isolated>false</Isolated>
+    </COMReference>
   </ItemGroup>
 
   <ItemGroup>
@@ -25,6 +52,7 @@
 
   <ItemGroup>
     <Resource Include="bin\Release\netcoreapp3.1\Ressources\UrlaubsplanerIcon.ico" />
+    <Resource Include="UrlaubsplanerIcon.png" />
   </ItemGroup>
 
 </Project>

@@ -61,6 +61,7 @@ namespace Urlaubsplaner
                     }
                 }
             }
+            BtnOutlookExport.IsEnabled = true;
         }
 
         private void Speichern(object sender, RoutedEventArgs e)
@@ -69,11 +70,29 @@ namespace Urlaubsplaner
             WriteXML();
         }
 
+        private void OutlookExport(object sender, RoutedEventArgs e)
+        {
+            BtnOutlookExport.IsEnabled = false;
+            Calendar calendar = new Calendar();
+            foreach (var item in DGUrlaub.ItemsSource)
+            {
+                Vacation vacation = (item as Vacation);
+                if (vacation.Enddatum.Hour == 0)
+                {
+                    calendar.NewEntry(vacation.Startdatum, vacation.Enddatum.AddDays(1), "Urlaub", "Urlaub");
+                }
+                else
+                {
+                    calendar.NewEntry(vacation.Startdatum, vacation.Enddatum, "Urlaub", "Urlaub");
+                }
+            }
+        }
+
         private void OnOpenProgramm()
         {
-            Urlaubsstunden = 240;
-
             InitializeComponent();
+
+            Urlaubsstunden = 240;
             DPEndDatum.SelectedDate = DateTime.Now;
             DPStartDatum.SelectedDate = DateTime.Now;
             //sets the Datagrid Item Source

@@ -180,10 +180,17 @@ namespace Urlaubsplaner
             MainWindow main = new MainWindow();
             hours = main.CalcStunden(vacationDays, false);
 
+            //The editing of the Vacation.Startzeit or Vacation.Endzeit changes the date of the entry to the current one. The next lines are to compat this behaviour
+            //tempStarTime and tempEndTime combinat the Vacation.Startzeit (or Endzeit) with Vaction.Tag to ensure that the rigth date is used.
+            VacationDay startDay = (DGUrlaubstage.Items[0] as VacationDay);
+            VacationDay endDay = (DGUrlaubstage.Items[DGUrlaubstage.Items.Count - 1] as VacationDay);
+            DateTime tempStartTime = new DateTime(startDay.Tag.Year, startDay.Tag.Month, startDay.Tag.Day, startDay.Startzeitpunkt.Hour, startDay.Startzeitpunkt.Minute, startDay.Startzeitpunkt.Second);
+            DateTime tempEndTime = new DateTime(endDay.Tag.Year, endDay.Tag.Month, endDay.Tag.Day, endDay.Endzeitpunkt.Hour, endDay.Endzeitpunkt.Minute, endDay.Endzeitpunkt.Second);
+
             Vacation vacation = new Vacation()
             {
-                Startdatum = (DGUrlaubstage.Items[0] as VacationDay).Startzeitpunkt,
-                Enddatum = (DGUrlaubstage.Items[DGUrlaubstage.Items.Count - 1] as VacationDay).Startzeitpunkt,
+                Startdatum = tempStartTime,
+                Enddatum = tempEndTime,
                 Stunden = hours,
                 Genommen = false
             };

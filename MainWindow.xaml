@@ -31,6 +31,7 @@
         <Button x:Name="BtnUrlaubEintragen" Content="Urlaub eintragen" HorizontalAlignment="Left" Margin="10,178,0,0" VerticalAlignment="Top" Height="32" Width="182"
                 Click="UrlaubEintagen"/>
         <Button Content="Speichern" Click="Speichern" HorizontalAlignment="Left" Margin="10,228,0,0" VerticalAlignment="Top" Height="32" Width="182"/>
+        <Button x:Name="BtnOutlookExport" Content="Outlook Export" Click="OutlookExport" Margin="10,0,581,10" Height="42" VerticalAlignment="Bottom"/>
 
 
         <Label x:Name="lblUrlaubsstunden" Content="Urlaubsstunden:" Margin="0,54,216,0" VerticalAlignment="Top" FontWeight="Bold" Height="26" HorizontalAlignment="Right" Width="120"/>
