@@ -5,11 +5,17 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Urlaubsplaner"
         mc:Ignorable="d"
-        Title="Urlaub Bearbeiten" Height="464" Width="817">
-    <DataGrid 
+        Title="Urlaub Bearbeiten" Height="440" Width="817">
+
+    <Grid Margin="1,10,0,29">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition/>
+        </Grid.ColumnDefinitions>
+
+        <DataGrid 
         x:Name="DGUrlaubstage" 
         Margin="20,30,0,0" 
-        Height="384" 
+        Height="279" 
         VerticalAlignment="Top" 
         HorizontalAlignment="Left" 
         Width="760" 
@@ -18,4 +24,7 @@
         CanUserDeleteRows="False"
         SelectedCellsChanged="DGUrlaubstage_SelectedCellsChanged"
         CellEditEnding="DGUrlaubstage_CellEditEnding"/>
+
+        <Button Content="Speichern" Click="Speichern" HorizontalAlignment="Left" Margin="19,316,0,0" VerticalAlignment="Top" Height="32" Width="182"/>
+    </Grid>
 </Window>

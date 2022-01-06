@@ -3,8 +3,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
-using System.Text;
 using System.Windows;
+using System.Windows.Controls;
+using System.Xml;
 
 namespace Urlaubsplaner
 {
@@ -12,32 +13,15 @@ namespace Urlaubsplaner
     public partial class MainWindow : Window
     {
         public JObject hollidays;
+        public float Urlaubsstunden;
+        private string Filename = "Urlaupsspeicher.xml";
 
-        public struct Feiertag
-        {
-            public DateTime datum;
-            public string hinweis;
-        }
-
-        private List<Vacation> vacationList = new List<Vacation>();
-
-        public MainWindow()
-        {
-            InitializeComponent();
-            DPEndDatum.SelectedDate = DateTime.Now;
-            DPStartDatum.SelectedDate = DateTime.Now;
-            //sets the Datagrid Item Source
-            DGUrlaub.ItemsSource = vacationList;
-
-            hollidays = RequestApi();
-            IsHollyday(DateTime.Now);
-        }
         public class Vacation
         {
-            public DateTime StartDate { get; set; }
-            public DateTime EndDate { get; set; }
-            public float Hours { get; set; }
-            public bool Taken { get; set; }
+            public DateTime Startdatum { get; set; }
+            public DateTime Enddatum { get; set; }
+            public float Stunden { get; set; }
+            public bool Genommen { get; set; }
         }
 
         public class VacationDay
@@ -48,19 +32,59 @@ namespace Urlaubsplaner
             public DateTime Endzeitpunkt { get; set; }
         }
 
+        public List<Vacation> VacationList { get; set; } = new List<Vacation>();
+
+        public MainWindow()
+        {
+            OnOpenProgramm();
+            UpdateGui();
+        }
+
         private void UrlaubEintagen(object sender, RoutedEventArgs e)
         {
             //Adds a new vacation object to the list
-            Vacation tVaction = InstantiateHollyday();
+            Vacation tVaction = InstantiateVacation();
+            DGUrlaub.Items.Refresh();
             if (tVaction != null)
             {
-                vacationList.Add(tVaction);
-                //Updates the Datagrid
-                DGUrlaub.Items.Refresh();
+                if (tVaction.Stunden != 0)
+                {
+                    if (CheckVacation(tVaction))
+                    {
+                        VacationList.Add(tVaction);
+                        //Updates the Datagrid
+                        DGUrlaub.Items.Refresh();
+                    }
+                    else
+                    {
+                        MessageBox.Show("Das angegebene Datum ist bereits verplant");
+                    }
+                }
             }
         }
 
-        private Vacation InstantiateHollyday()
+        private void Speichern(object sender, RoutedEventArgs e)
+        {
+            UpdateGui();
+            WriteXML();
+        }
+
+        private void OnOpenProgramm()
+        {
+            Urlaubsstunden = 240;
+
+            InitializeComponent();
+            DPEndDatum.SelectedDate = DateTime.Now;
+            DPStartDatum.SelectedDate = DateTime.Now;
+            //sets the Datagrid Item Source
+            DGUrlaub.ItemsSource = VacationList;
+
+            hollidays = RequestApi();
+            IsHollyday(DateTime.Now);
+            ReadXML();
+        }
+
+        private Vacation InstantiateVacation()
         {
 
             DateTime tStartDate, tEndDate;
@@ -81,10 +105,10 @@ namespace Urlaubsplaner
 
             Vacation urlaub = new Vacation()
             {
-                StartDate = tStartDate,
-                EndDate = tEndDate,
-                Hours = tHours,
-                Taken = false
+                Startdatum = tStartDate,
+                Enddatum = tEndDate,
+                Stunden = tHours,
+                Genommen = false
             };
 
             return urlaub;
@@ -108,6 +132,7 @@ namespace Urlaubsplaner
             {
                 lHalfHollidayHoursFriday = 0;
                 lHalfHollidayHours = 0;
+
                 EndTime = Start.AddDays(i);
                 StartTime = Start.AddDays(i).AddHours(7);
                 lPauseHours = 0;
@@ -120,46 +145,39 @@ namespace Urlaubsplaner
                 }
                 else
                 {
+                    if (IsHalfHolliday(Start.AddDays(i)))
+                    {
+                        lHalfHollidayHoursFriday = 2.5f;
+                        lHalfHollidayHours = 4.75f;
+                        lPauseHours = 0.75f;
+                    }
                     if (Start.AddDays(i).DayOfWeek != DayOfWeek.Friday)
                     {
-                        lHours += 8.75f;
+                        lHours += 8.75f - lHalfHollidayHours;
+                        EndTime = EndTime.AddHours(16.75 - lHalfHollidayHours - lPauseHours);
                     }
                     else
                     {
-                        if (IsHalfHolliday(Start.AddDays(i)))
-                        {
-                            lHalfHollidayHoursFriday = 1;
-                            lHalfHollidayHours = 4.75f;
-                            lPauseHours = 0.75f;
-                        }
-                        if (Start.AddDays(i).DayOfWeek != DayOfWeek.Friday)
-                        {
-                            lHours += 8.75f - lHalfHollidayHours;
-                            EndTime = EndTime.AddHours(16.75 - lHalfHollidayHours - lPauseHours);
-                        }
-                        else
-                        {
-                            lHours += 5 - lHalfHollidayHoursFriday;
-                            EndTime = EndTime.AddHours(12.25 - lHalfHollidayHoursFriday);
-                        }
+                        lHours += 5 - lHalfHollidayHoursFriday;
+                        EndTime = EndTime.AddHours(12.25 - lHalfHollidayHoursFriday);
                     }
-                    VacationDay vacationDay = new VacationDay()
-                    {
-                        Tag = Start.AddDays(i),
-                        Stunden = lHours,
-                        Startzeitpunkt = StartTime,
-                        Endzeitpunkt = EndTime
-                    };
-                    vacationDays.Add(vacationDay);
-                    lHours = 0;
                 }
+                VacationDay vacationDay = new VacationDay()
+                {
+                    Tag = Start.AddDays(i),
+                    Stunden = lHours,
+                    Startzeitpunkt = StartTime,
+                    Endzeitpunkt = EndTime
+                };
+                vacationDays.Add(vacationDay);
+                lHours = 0;
             }
             return vacationDays;
         }
 
-        private float CalcStunden(List<VacationDay> vacationDays, bool? changeHours)
+        public float CalcStunden(List<VacationDay> vacationDays, bool? changeHours)
         {
-            float houres = 0;
+            float hours = 0;
             if (changeHours == true)
             {
                 ChangeHours(vacationDays);
@@ -168,18 +186,42 @@ namespace Urlaubsplaner
             {
                 foreach (VacationDay day in vacationDays)
                 {
-                    houres += day.Stunden;
+                    hours += day.Stunden;
                 }
             }
-            return houres;
+            return hours;
         }
 
-        private float ChangeHours(List<VacationDay> vacationDays)
+        private float CalcRestHollidayPlaned()
         {
-            Window1 urlaubBearbeiten = new Window1();
+            float hours = 0;
+            foreach (var item in DGUrlaub.ItemsSource)
+            {
+                hours += (item as Vacation).Stunden;
+            }
+            return hours;
+        }
+
+        private float CalcRestHollidayActual()
+        {
+            float hours = 0;
+            foreach (var item in DGUrlaub.ItemsSource)
+            {
+                if ((item as Vacation).Genommen)
+                {
+                    hours += (item as Vacation).Stunden;
+                }
+            }
+            return hours;
+        }
+
+        private void ChangeHours(List<VacationDay> vacationDays)
+        {
+            // Opens a new formular to edit the given entry
+            Window1 urlaubBearbeiten = new Window1(VacationList, DGUrlaub);
             urlaubBearbeiten.DGUrlaubstage.ItemsSource = vacationDays;
-            urlaubBearbeiten.Show();
-            return 0;
+            urlaubBearbeiten.ShowDialog();
+            urlaubBearbeiten.Close();
         }
 
         private bool IsHolidayOrWeekend(DateTime tDay)
@@ -197,6 +239,7 @@ namespace Urlaubsplaner
 
         private bool IsHollyday(DateTime pDate)
         {
+            //Checks if the given day is a hollyday
             if (hollidays == null)
             {
                 return false;
@@ -218,6 +261,8 @@ namespace Urlaubsplaner
 
         private bool IsHalfHolliday(DateTime pDate)
         {
+            //Checks if the given day is a "half-hollyday"
+
             //create "half" hollidays
             DateTime halfday1 = new DateTime(pDate.Year, 12, 24);
             DateTime halfday2 = new DateTime(pDate.Year, 12, 31);
@@ -247,6 +292,164 @@ namespace Urlaubsplaner
                 return json;
 
             }
+        }
+
+        private void OnAutoGeneratingColumn(object sender, DataGridAutoGeneratingColumnEventArgs e)
+        {
+            if (e.PropertyType == typeof(System.DateTime))
+            {
+                if (e.Column.Header.ToString() == "Startdatum" || e.Column.Header.ToString() == "Enddatum")
+                {
+                    (e.Column as DataGridTextColumn).Binding.StringFormat = "dddd, dd.MM.yyyy";
+                }
+            }
+        }
+
+        public bool CheckVacation(Vacation vacation)
+        {
+            DateTime start = vacation.Startdatum;
+            DateTime end = vacation.Enddatum;
+            int i = 0;
+
+            if (DGUrlaub.HasItems)
+            {
+                do
+                {
+                    foreach (var vacationDataGrid in DGUrlaub.ItemsSource)
+                    {
+                        Vacation date = (vacationDataGrid as Vacation);
+
+                        if (date.Startdatum == vacation.Startdatum) return false;
+                        if (date.Enddatum == vacation.Enddatum) return false;
+                        if (date.Startdatum == vacation.Enddatum) return false;
+                    }
+                    i++;
+                } while (start.AddDays(i).ToShortTimeString() != end.ToShortTimeString());
+            }
+            return true;
+        }
+
+        private void WriteXML()
+        {
+            XmlWriter xmlWriter;
+            XmlWriterSettings settings = new XmlWriterSettings();
+            settings.Indent = true;
+
+            try
+            {
+                xmlWriter = XmlWriter.Create(Filename, settings);
+            }
+            catch (Exception)
+            {
+                MessageBox.Show("Der angegebene Pfad ist nicht erreichbar");
+                return;
+            }
+
+            xmlWriter.WriteStartDocument();
+            xmlWriter.WriteStartElement("Urlaubstabelle");
+            int i = 1;
+
+            foreach (var item in DGUrlaub.ItemsSource)
+            {
+                Vacation vacation = (item as Vacation);
+                xmlWriter.WriteStartElement("Urlaub" + i);
+                xmlWriter.WriteElementString("Startdatum", vacation.Startdatum.ToString());
+                xmlWriter.WriteElementString("Enddatum", vacation.Enddatum.ToString());
+                xmlWriter.WriteElementString("Stunden", vacation.Stunden.ToString());
+                xmlWriter.WriteElementString("Genommen", vacation.Genommen.ToString());
+                xmlWriter.WriteEndElement();
+                i++;
+            }
+
+
+            xmlWriter.WriteElementString("Reststunden_des_Vorjahres", txtReststundenDesVorjahres.Text);
+
+            xmlWriter.WriteEndElement();
+            xmlWriter.WriteEndDocument();
+            xmlWriter.Close();
+        }
+
+        private void ReadXML()
+        {
+            DateTime start = DateTime.Now, ende = DateTime.Now;
+            bool taken = false;
+            double hours = 0;
+            string name;
+            bool flagHolidayComplet = false;
+            XmlReader xmlReader;
+
+            try
+            {
+                xmlReader = XmlReader.Create(Filename);
+            }
+            catch (Exception)
+            {
+                MessageBox.Show("Die angegebene Datei kann nicht gefunden werden");
+                return;
+            }
+
+            try
+            {
+                while (xmlReader.Read())
+                {
+                    // Do some work here on the data.
+                    name = xmlReader.Name;
+                    if (xmlReader.NodeType == XmlNodeType.Element)
+                    {
+                        switch (name)
+                        {
+                            case "Startdatum":
+                                start = Convert.ToDateTime(xmlReader.ReadElementContentAsString());
+                                break;
+                            case "Enddatum":
+                                ende = Convert.ToDateTime(xmlReader.ReadElementContentAsString());
+                                break;
+                            case "Stunden":
+                                hours = Convert.ToDouble(xmlReader.ReadElementContentAsString());
+                                break;
+                            case "Genommen":
+                                taken = Convert.ToBoolean(xmlReader.ReadElementContentAsString());
+                                flagHolidayComplet = true;
+                                break;
+                            case "Reststunden_des_Vorjahres":
+                                txtReststundenDesVorjahres.Text = xmlReader.ReadElementContentAsString();
+                                break;
+                        }
+                    }
+                    else if (xmlReader.NodeType == XmlNodeType.EndElement && flagHolidayComplet)
+                    {
+                        Vacation vacation = new Vacation()
+                        {
+                            Startdatum = start,
+                            Enddatum = ende,
+                            Stunden = (float)hours,
+                            Genommen = taken
+                        };
+                        flagHolidayComplet = false;
+                        VacationList.Add(vacation);
+                        DGUrlaub.Items.Refresh();
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                MessageBox.Show("Beim lesen der XML Datei ist ein Fehler aufgetreten.");
+                return;
+            }
+            
+        }
+
+        private void UpdateGui()
+        {
+            DGUrlaub.Items.Refresh();
+
+            if (txtReststundenDesVorjahres.Text != "")
+            {
+                txtUrlaubsstunden.Text = Convert.ToString(Urlaubsstunden + Convert.ToInt32(txtReststundenDesVorjahres.Text));
+            }
+
+            txtGeplanteReststunden.Text = (Convert.ToDouble(txtUrlaubsstunden.Text) - CalcRestHollidayPlaned()).ToString();
+            txtTatsaechlicheReststunden.Text = (Convert.ToDouble(txtUrlaubsstunden.Text) - CalcRestHollidayActual()).ToString();
         }
     }
 }

@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
 using static Urlaubsplaner.MainWindow;
 
 namespace Urlaubsplaner
@@ -12,11 +11,14 @@ namespace Urlaubsplaner
     /// </summary>
     public partial class Window1 : Window
     {
-        List<DateTime> TimeTable;
-        public Window1()
+        private List<Vacation> vacations;
+        private DataGrid datagridMain;
+
+        public Window1(List<Vacation> vacations, DataGrid dataGrid)
         {
             InitializeComponent();
-            TimeTable = new List<DateTime>();
+            this.vacations = vacations;
+            this.datagridMain = dataGrid;
         }
 
         private void OnAutoGeneratingColumn(object sender, DataGridAutoGeneratingColumnEventArgs e)
@@ -44,7 +46,7 @@ namespace Urlaubsplaner
             {
                 DataGridCellInfo currentCell = DGUrlaubstage.CurrentCell;
                 string editingElmementValue = (e.EditingElement as TextBox).Text.ToString();
-                VacationDay vacationDay = null;
+                VacationDay vacationDay;
                 DateTime roundedTime; 
                 if (e.Column.Header.ToString() == "Startzeitpunkt" || e.Column.Header.ToString() == "Endzeitpunkt")
                 {
@@ -71,7 +73,7 @@ namespace Urlaubsplaner
 
                     if (vacationDay != null)
                     {
-                        vacationDay.Stunden = CalcHoures(vacationDay.Startzeitpunkt, vacationDay.Endzeitpunkt);
+                        vacationDay.Stunden = CalcHours(vacationDay.Startzeitpunkt, vacationDay.Endzeitpunkt);
                     }
                 }
             }
@@ -101,41 +103,97 @@ namespace Urlaubsplaner
             return dateTime;
         }
 
-        private float CalcHoures(DateTime startTime, DateTime endTime)
+        private float CalcHours(DateTime startTime, DateTime endTime)
         {
             bool breakfastBreak = false;
             bool luchBreak = false;
+            float hours;
 
+            //this line of code ensures that the condition for the breakfast and lunch break works properly
+            //Editing the start and end time will otherwise cause this condition to break.
+            DateTime tempDateTimeEnd = new DateTime(startTime.Year, startTime.Month, startTime.Day, endTime.Hour, endTime.Minute, endTime.Second);
+
+            DateTime tempDate = endTime;
             DateTime breakfastStart = new DateTime(startTime.Year, startTime.Month, startTime.Day, 9, 0,0);
             DateTime breakfastEnd = new DateTime(startTime.Year, startTime.Month, startTime.Day, 9, 15, 0);
             DateTime lunchStart = new DateTime(startTime.Year, startTime.Month, startTime.Day, 12, 15, 0);
             DateTime lunchEnd = new DateTime(startTime.Year, startTime.Month, startTime.Day, 13, 00, 0);
 
-            if (startTime <= breakfastStart && endTime >= breakfastEnd)
+            //will not work if the start or endtime is set between "BreakStart" and "BreakEnd"
+            if (startTime <= breakfastStart && tempDateTimeEnd >= breakfastEnd)
             {
                 breakfastBreak = true;
             }
-            if (startTime <= lunchStart && endTime >= lunchEnd)
+            if (startTime <= lunchStart && tempDateTimeEnd >= lunchEnd)
             {
                 luchBreak = true;
             }
 
-            float houres = (float)(endTime - startTime).TotalHours;
+            tempDate = tempDate.AddMinutes(-startTime.Minute);
+            tempDate = tempDate.AddHours(-startTime.Hour);
             if (breakfastBreak)
             {
-                houres -= 0.25f;
+                tempDate = tempDate.AddMinutes(-15);
             }
             if (luchBreak)
             {
-                houres -= 0.45f;
+                tempDate = tempDate.AddMinutes(-45);
             }
-            return houres;
+            hours = tempDate.Hour;
+            if (tempDate.Minute == 15)
+            {
+                hours += 0.25f;
+            }
+            else if (tempDate.Minute == 30)
+            {
+                hours += 0.5f;
+            }
+            else if (tempDate.Minute ==45)
+            {
+                hours += 0.75f;
+            }
+            return hours;
         }
 
         private void DGUrlaubstage_SelectedCellsChanged(object sender, SelectedCellsChangedEventArgs e)
         {
             //funktioniert nur beim wechseln der Zeile
             DGUrlaubstage.Items.Refresh();
+        }
+
+        private void Speichern(object sender, RoutedEventArgs e)
+        {
+            NewEntryInMain();
+            this.Close();
+        }
+
+        private void NewEntryInMain()
+        {
+            float hours;
+            List<VacationDay> vacationDays = new List<VacationDay>();
+
+            DGUrlaubstage.Items.Refresh();
+            foreach (var item in DGUrlaubstage.ItemsSource)
+            {
+                vacationDays.Add((item as VacationDay));
+            }
+            MainWindow main = new MainWindow();
+            hours = main.CalcStunden(vacationDays, false);
+
+            Vacation vacation = new Vacation()
+            {
+                Startdatum = (DGUrlaubstage.Items[0] as VacationDay).Startzeitpunkt,
+                Enddatum = (DGUrlaubstage.Items[DGUrlaubstage.Items.Count - 1] as VacationDay).Startzeitpunkt,
+                Stunden = hours,
+                Genommen = false
+            };
+
+            vacations.Add(vacation);
+            datagridMain.Items.Refresh();
+
+            main.Close();
+            DGUrlaubstage.ItemsSource = null;
+            DGUrlaubstage.Items.Clear();
         }
     }
 }

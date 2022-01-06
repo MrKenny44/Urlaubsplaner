@@ -4,10 +4,27 @@
     <OutputType>WinExe</OutputType>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <UseWPF>true</UseWPF>
+    <Description>Dieses Programm dient dazu den eigenen Urlaub im Blick zu behalten. Bei Wünschen oder Bugs bei Paul Kenning melden.</Description>
+    <PackageIcon>UrlaubsplanerIcon.png</PackageIcon>
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="UrlaubsplanerIcon.png" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="bin\Release\netcoreapp3.1\Ressources\UrlaubsplanerIcon.png">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="UrlaubsplanerIcon.png" />
   </ItemGroup>
 
 </Project>
