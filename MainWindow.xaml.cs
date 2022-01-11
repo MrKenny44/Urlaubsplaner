@@ -156,13 +156,7 @@ namespace Urlaubsplaner
                 StartTime = Start.AddDays(i).AddHours(7);
                 lPauseHours = 0;
 
-                if (IsHolidayOrWeekend(Start.AddDays(i)))
-
-                {
-                    lHours = 0;
-                    StartTime = StartTime.AddHours(-7);
-                }
-                else
+                if (!IsHolidayOrWeekend(Start.AddDays(i)))
                 {
                     if (IsHalfHolliday(Start.AddDays(i)))
                     {
@@ -180,16 +174,17 @@ namespace Urlaubsplaner
                         lHours += 5 - lHalfHollidayHoursFriday;
                         EndTime = EndTime.AddHours(12.25 - lHalfHollidayHoursFriday);
                     }
+
+                    VacationDay vacationDay = new VacationDay()
+                    {
+                        Tag = Start.AddDays(i),
+                        Stunden = lHours,
+                        Startzeitpunkt = StartTime,
+                        Endzeitpunkt = EndTime
+                    };
+                    vacationDays.Add(vacationDay);
+                    lHours = 0;
                 }
-                VacationDay vacationDay = new VacationDay()
-                {
-                    Tag = Start.AddDays(i),
-                    Stunden = lHours,
-                    Startzeitpunkt = StartTime,
-                    Endzeitpunkt = EndTime
-                };
-                vacationDays.Add(vacationDay);
-                lHours = 0;
             }
             return vacationDays;
         }

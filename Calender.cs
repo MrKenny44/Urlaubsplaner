@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Windows;
 using Outlook = Microsoft.Office.Interop.Outlook;
 
 public class Calendar

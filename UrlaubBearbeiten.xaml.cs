@@ -73,6 +73,7 @@ namespace Urlaubsplaner
 
                     if (vacationDay != null)
                     {
+                        vacationDay = RepairVacationDayData(vacationDay);
                         vacationDay.Stunden = CalcHours(vacationDay.Startzeitpunkt, vacationDay.Endzeitpunkt);
                     }
                 }
@@ -109,10 +110,6 @@ namespace Urlaubsplaner
             bool luchBreak = false;
             float hours;
 
-            //this line of code ensures that the condition for the breakfast and lunch break works properly
-            //Editing the start and end time will otherwise cause this condition to break.
-            DateTime tempDateTimeEnd = new DateTime(startTime.Year, startTime.Month, startTime.Day, endTime.Hour, endTime.Minute, endTime.Second);
-
             DateTime tempDate = endTime;
             DateTime breakfastStart = new DateTime(startTime.Year, startTime.Month, startTime.Day, 9, 0,0);
             DateTime breakfastEnd = new DateTime(startTime.Year, startTime.Month, startTime.Day, 9, 15, 0);
@@ -120,11 +117,11 @@ namespace Urlaubsplaner
             DateTime lunchEnd = new DateTime(startTime.Year, startTime.Month, startTime.Day, 13, 00, 0);
 
             //will not work if the start or endtime is set between "BreakStart" and "BreakEnd"
-            if (startTime <= breakfastStart && tempDateTimeEnd >= breakfastEnd)
+            if (startTime <= breakfastStart && endTime >= breakfastEnd)
             {
                 breakfastBreak = true;
             }
-            if (startTime <= lunchStart && tempDateTimeEnd >= lunchEnd)
+            if (startTime <= lunchStart && endTime >= lunchEnd)
             {
                 luchBreak = true;
             }
@@ -157,7 +154,7 @@ namespace Urlaubsplaner
 
         private void DGUrlaubstage_SelectedCellsChanged(object sender, SelectedCellsChangedEventArgs e)
         {
-            //funktioniert nur beim wechseln der Zeile
+            //Only triggers when you change to a diffrent cell after eddeting
             DGUrlaubstage.Items.Refresh();
         }
 
@@ -169,38 +166,133 @@ namespace Urlaubsplaner
 
         private void NewEntryInMain()
         {
-            float hours;
-            List<VacationDay> vacationDays = new List<VacationDay>();
+            //This function loops trough all days of the vacation. If there is a diffrent start time than default and the current day is not the first day it will add the counter to
+            //the List "splitPoints". This also applies when the end time is diffent to the deafult and the current day is not the last day. 
+            float hours, summHours = 0;
+            int i = 0;
+            int counterVacationDays;
+            int startIndex = 0;
+            List<int> splitPoints = GenerateSplitPoints();
+            List<VacationDay> vacationDays;
 
-            DGUrlaubstage.Items.Refresh();
-            foreach (var item in DGUrlaubstage.ItemsSource)
-            {
-                vacationDays.Add((item as VacationDay));
-            }
             MainWindow main = new MainWindow();
-            hours = main.CalcStunden(vacationDays, false);
-
-            //The editing of the Vacation.Startzeit or Vacation.Endzeit changes the date of the entry to the current one. The next lines are to compat this behaviour
-            //tempStarTime and tempEndTime combinat the Vacation.Startzeit (or Endzeit) with Vaction.Tag to ensure that the rigth date is used.
-            VacationDay startDay = (DGUrlaubstage.Items[0] as VacationDay);
-            VacationDay endDay = (DGUrlaubstage.Items[DGUrlaubstage.Items.Count - 1] as VacationDay);
-            DateTime tempStartTime = new DateTime(startDay.Tag.Year, startDay.Tag.Month, startDay.Tag.Day, startDay.Startzeitpunkt.Hour, startDay.Startzeitpunkt.Minute, startDay.Startzeitpunkt.Second);
-            DateTime tempEndTime = new DateTime(endDay.Tag.Year, endDay.Tag.Month, endDay.Tag.Day, endDay.Endzeitpunkt.Hour, endDay.Endzeitpunkt.Minute, endDay.Endzeitpunkt.Second);
-
-            Vacation vacation = new Vacation()
+            do
             {
-                Startdatum = tempStartTime,
-                Enddatum = tempEndTime,
-                Stunden = hours,
-                Genommen = false
-            };
+                vacationDays = CreateVacationDayList(splitPoints[i]);
+                counterVacationDays = vacationDays.Count;
+                VacationDay startDay = vacationDays[startIndex];
+                VacationDay endDay = vacationDays[vacationDays.Count - 1];
+                startDay = RepairVacationDayData(startDay);
+                endDay = RepairVacationDayData(endDay);
 
-            vacations.Add(vacation);
-            datagridMain.Items.Refresh();
+                hours = main.CalcStunden(vacationDays, false) -summHours;
+                summHours = summHours + hours;
+                //startIndex += vacationDays.Count;
+                i++;
+
+                startIndex = splitPoints[i - 1] + 1;
+
+                Vacation vacation = new Vacation()
+                {
+                    Startdatum = startDay.Startzeitpunkt,
+                    Enddatum = endDay.Endzeitpunkt,
+                    Stunden = hours,
+                    Genommen = false
+                };
+
+                vacations.Add(vacation);
+                datagridMain.Items.Refresh();
+
+            } while (splitPoints.Count >i);
 
             main.Close();
             DGUrlaubstage.ItemsSource = null;
             DGUrlaubstage.Items.Clear();
         }
+
+        private List<VacationDay> CreateVacationDayList(int split)
+        {
+            int i = 0;
+            List<VacationDay> vacationDays = new List<VacationDay>();
+
+            DGUrlaubstage.Items.Refresh();
+            foreach (var item in DGUrlaubstage.ItemsSource)
+            {
+                if (i <= split)
+                {
+                    vacationDays.Add((item as VacationDay));
+                }
+                if (i == split)
+                {
+                    break;
+                }
+                i++;
+            }
+
+            return vacationDays;
+        }
+
+        private List<int> GenerateSplitPoints()
+        {
+            VacationDay tempDay;
+            List<int> splitPoints = new List<int>();
+
+            for (int i = 0; i < DGUrlaubstage.Items.Count; i++)
+            {
+
+                tempDay = (DGUrlaubstage.Items[i] as VacationDay);
+                tempDay = RepairVacationDayData(tempDay);
+
+                DateTime tempRegularStartTime = new DateTime(tempDay.Tag.Year, tempDay.Tag.Month, tempDay.Tag.Day, 7, 0, 0);
+                DateTime tempRegularEndTimeFriday = new DateTime(tempDay.Tag.Year, tempDay.Tag.Month, tempDay.Tag.Day, 12, 15, 0);
+                DateTime tempRegularEndTime = new DateTime(tempDay.Tag.Year, tempDay.Tag.Month, tempDay.Tag.Day, 16, 45, 0);
+
+                if (i < DGUrlaubstage.Items.Count -1)
+                {
+                    if (i != 0)
+                    {
+                        if (tempDay.Startzeitpunkt > tempRegularStartTime)
+                        {
+                            if (!splitPoints.Contains(i-1))
+                            {
+                                splitPoints.Add(i-1);
+                            }
+                        }
+                    }
+                    if (tempDay.Tag.DayOfWeek != DayOfWeek.Friday && tempDay.Endzeitpunkt < tempRegularEndTime)
+                    {
+                        if (!splitPoints.Contains(i))
+                        {
+                            splitPoints.Add(i);
+                        }
+                    }
+                    else
+                    {
+                        if (tempDay.Tag.DayOfWeek == DayOfWeek.Friday && tempDay.Endzeitpunkt < tempRegularEndTimeFriday)
+                        {
+                            if (!splitPoints.Contains(i))
+                            {
+                                splitPoints.Add(i);
+                            }
+                        }
+                    }
+                }
+            }
+
+            splitPoints.Add(100);
+            return splitPoints;
+        }
+
+        private VacationDay RepairVacationDayData(VacationDay tempDay)
+        {
+            //The editing of the Vacation.Startzeit or Vacation.Endzeit changes the date of the entry to the current one. The next lines are to compat this behaviour
+            //tempVacationStarTime and tempVacationEndTime combinat the Vacation.Startzeit (or Endzeit) with Vaction.Tag to ensure that the rigth date is used.
+            DateTime tempVacatioStartTime = new DateTime(tempDay.Tag.Year, tempDay.Tag.Month, tempDay.Tag.Day, tempDay.Startzeitpunkt.Hour, tempDay.Startzeitpunkt.Minute, 0);
+            DateTime tempVacationEndTime = new DateTime(tempDay.Tag.Year, tempDay.Tag.Month, tempDay.Tag.Day, tempDay.Endzeitpunkt.Hour, tempDay.Endzeitpunkt.Minute, 0);
+            tempDay.Startzeitpunkt = tempVacatioStartTime;
+            tempDay.Endzeitpunkt = tempVacationEndTime;
+            return tempDay;
+        }
+
     }
 }
